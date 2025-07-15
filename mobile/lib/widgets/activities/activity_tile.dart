@@ -1,10 +1,15 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/extensions/datetime_extensions.dart';
 import 'package:immich_mobile/models/activities/activity.model.dart';
+import 'package:immich_mobile/providers/asset_viewer/show_controls.provider.dart';
 import 'package:immich_mobile/providers/image/immich_remote_thumbnail_provider.dart';
 import 'package:immich_mobile/providers/asset_viewer/current_asset.provider.dart';
+import 'package:immich_mobile/repositories/asset.repository.dart';
+import 'package:immich_mobile/routing/router.dart';
+import 'package:immich_mobile/widgets/asset_grid/asset_grid_data_structure.dart';
 import 'package:immich_mobile/widgets/common/user_circle_avatar.dart';
 
 class ActivityTile extends HookConsumerWidget {
@@ -14,36 +19,71 @@ class ActivityTile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> onTap() async {
+      if (activity.assetId == null) {
+        return;
+      }
+
+      final asset = await ref.read(assetRepositoryProvider).getByRemoteId(
+            activity.assetId!,
+          );
+      if (asset == null) {
+        return;
+      }
+
+      final renderList = await RenderList.fromAssets(
+        [asset],
+        GroupAssetsBy.none,
+      );
+      final assetNotifier = ref.read(currentAssetProvider.notifier);
+      assetNotifier.set(asset);
+      if (asset.isVideo) {
+        ref.read(showControlsProvider.notifier).show = false;
+      }
+      await context.pushRoute(
+        GalleryViewerRoute(
+          initialIndex: 0,
+          heroOffset: 0,
+          renderList: renderList,
+        ),
+      );
+      assetNotifier.set(null);
+    }
+
     final asset = ref.watch(currentAssetProvider);
     final isLike = activity.type == ActivityType.like;
     // Asset thumbnail is displayed when we are accessing activities from the album page
     // currentAssetProvider will not be set until we open the gallery viewer
     final showAssetThumbnail = asset == null && activity.assetId != null;
 
-    return ListTile(
-      minVerticalPadding: 15,
-      leading: isLike
-          ? Container(
-              width: 44,
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.favorite_rounded,
-                color: Colors.red[700],
-              ),
-            )
-          : UserCircleAvatar(user: activity.user),
-      title: _ActivityTitle(
-        userName: activity.user.name,
-        createdAt: activity.createdAt.timeAgo(),
-        leftAlign: isLike || showAssetThumbnail,
+    return GestureDetector(
+      onTap: onTap,
+      child: ListTile(
+        minVerticalPadding: 15,
+        leading: isLike
+            ? Container(
+                width: 44,
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.favorite_rounded,
+                  color: Colors.red[700],
+                ),
+              )
+            : UserCircleAvatar(user: activity.user),
+        title: _ActivityTitle(
+          userName: activity.user.name,
+          createdAt: activity.createdAt.timeAgo(),
+          leftAlign: isLike || showAssetThumbnail,
+        ),
+        // No subtitle for like, so center title
+        titleAlignment: !isLike
+            ? ListTileTitleAlignment.top
+            : ListTileTitleAlignment.center,
+        trailing: showAssetThumbnail
+            ? _ActivityAssetThumbnail(activity.assetId!)
+            : null,
+        subtitle: !isLike ? Text(activity.comment!) : null,
       ),
-      // No subtitle for like, so center title
-      titleAlignment:
-          !isLike ? ListTileTitleAlignment.top : ListTileTitleAlignment.center,
-      trailing: showAssetThumbnail
-          ? _ActivityAssetThumbnail(activity.assetId!)
-          : null,
-      subtitle: !isLike ? Text(activity.comment!) : null,
     );
   }
 }
