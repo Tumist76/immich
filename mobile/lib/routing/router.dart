@@ -72,7 +72,10 @@ import 'package:immich_mobile/pages/share_intent/share_intent.page.dart';
 import 'package:immich_mobile/presentation/pages/drift_favorite.page.dart';
 import 'package:immich_mobile/presentation/pages/drift_partner_detail.page.dart';
 import 'package:immich_mobile/presentation/pages/drift_local_album.page.dart';
+import 'package:immich_mobile/presentation/pages/drift_place.page.dart';
+import 'package:immich_mobile/presentation/pages/drift_place_detail.page.dart';
 import 'package:immich_mobile/presentation/pages/drift_recently_taken.page.dart';
+import 'package:immich_mobile/presentation/pages/drift_user_selection.page.dart';
 import 'package:immich_mobile/presentation/pages/drift_video.page.dart';
 import 'package:immich_mobile/presentation/pages/drift_trash.page.dart';
 import 'package:immich_mobile/presentation/pages/drift_archive.page.dart';
@@ -451,6 +454,18 @@ class AppRouter extends RootStackRouter {
     ),
     AutoRoute(
       page: DriftCreateAlbumRoute.page,
+      guards: [_authGuard, _duplicateGuard],
+    ),
+    AutoRoute(
+      page: DriftPlaceRoute.page,
+      guards: [_authGuard, _duplicateGuard],
+    ),
+    AutoRoute(
+      page: DriftPlaceDetailRoute.page,
+      guards: [_authGuard, _duplicateGuard],
+    ),
+    AutoRoute(
+      page: DriftUserSelectionRoute.page,
       guards: [_authGuard, _duplicateGuard],
     ),
 
