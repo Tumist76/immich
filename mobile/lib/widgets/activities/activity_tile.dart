@@ -56,34 +56,33 @@ class ActivityTile extends HookConsumerWidget {
     // currentAssetProvider will not be set until we open the gallery viewer
     final showAssetThumbnail = asset == null && activity.assetId != null;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: ListTile(
-        minVerticalPadding: 15,
-        leading: isLike
-            ? Container(
-                width: 44,
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.favorite_rounded,
-                  color: Colors.red[700],
-                ),
-              )
-            : UserCircleAvatar(user: activity.user),
-        title: _ActivityTitle(
-          userName: activity.user.name,
-          createdAt: activity.createdAt.timeAgo(),
-          leftAlign: isLike || showAssetThumbnail,
-        ),
-        // No subtitle for like, so center title
-        titleAlignment: !isLike
-            ? ListTileTitleAlignment.top
-            : ListTileTitleAlignment.center,
-        trailing: showAssetThumbnail
-            ? _ActivityAssetThumbnail(activity.assetId!)
-            : null,
-        subtitle: !isLike ? Text(activity.comment!) : null,
+    return ListTile(
+      minVerticalPadding: 15,
+      leading: isLike
+          ? Container(
+              width: 44,
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.favorite_rounded,
+                color: Colors.red[700],
+              ),
+            )
+          : UserCircleAvatar(user: activity.user),
+      title: _ActivityTitle(
+        userName: activity.user.name,
+        createdAt: activity.createdAt.timeAgo(),
+        leftAlign: isLike || showAssetThumbnail,
       ),
+      // No subtitle for like, so center title
+      titleAlignment:
+          !isLike ? ListTileTitleAlignment.top : ListTileTitleAlignment.center,
+      trailing: showAssetThumbnail
+          ? GestureDetector(
+              onTap: onTap,
+              child: _ActivityAssetThumbnail(activity.assetId!),
+            )
+          : null,
+      subtitle: !isLike ? Text(activity.comment!) : null,
     );
   }
 }
